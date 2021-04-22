@@ -10,13 +10,26 @@ proc processMessage*(data: string) : Message =
     result.username = dataJson["username"].getStr("Invalid Username")
     result.message = dataJson["message"].getStr("Invalid Message")
 
+proc createMessage*(username, message : string) : string =
+    result = $(%{
+        "username": %username,
+        "message": %message
+    }) & "\c\l"
+
 
 when isMainModule:
-    block Test:
+    block TestProcessMessage:
         let msg : string = """{"message":"Hello", "username":"Ebube"}"""
         let obj : Message = processMessage(msg)
         let cond = obj.username == "Ebube"
         let cond2 = obj.message == "Hello"
         doAssert(cond)
         doAssert(cond2)
-        echo "Tests Passed!"
+        
+    block TestCreateMessage:
+        let expectedResult : string  = """{"username":"Ebube","message":"Hello"}""" & "\c\l"
+        let result : string = createMessage("Ebube", "Hello")
+        doAssert(expectedResult == result)
+
+    echo "Tests Passed!"
+
