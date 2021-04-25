@@ -5,14 +5,18 @@ var username = ""
 
 
 proc connect(socket: AsyncSocket, serverAddr: string) {.async.} =
-    echo("Connecting to ", serverAddr)
-    await socket.connect(serverAddr, 7687.Port)
-    echo("Connected!")
-    while true:
-        let line = await socket.recvLine()
-        let parsed = parseMessage(line)
-        echo(parsed.username, " said ", parsed.message)
-    echo("Chat application started")
+    try:
+        echo("Connecting to ", serverAddr)
+        await socket.connect(serverAddr, 7687.Port)
+        echo("Connected!")
+        while true:
+            let line = await socket.recvLine()
+            let parsed = parseMessage(line)
+            echo(parsed.username, " said ", parsed.message)
+        echo("Chat application started")
+    except:
+        echo "There was an error trying to connect to the server: ", getCurrentExceptionMsg()
+
 
 if paramCount() == 0:
     quit("Please specify the server address, e.g. ./client localhost")
@@ -25,6 +29,7 @@ asyncCheck connect(socket, serverAddr)
 echo "Input a Username: "
 var messageFlowVar = spawn stdin.readLine()
 
+
 while true:
     if messageFlowVar.isReady():
         username = ^messageFlowVar
@@ -34,9 +39,12 @@ echo "username set as ", username
 
 echo "# type in a message to send to the channel and hit enter to send"
 
-while true:
-    if messageFlowVar.isReady():
-        let message = createMessage(username, ^messageFlowVar)
-        asyncCheck socket.send(message)
-        messageFlowVar = spawn stdin.readLine()
-    asyncdispatch.poll()
+try:
+    while true:
+        if messageFlowVar.isReady():
+            let message = createMessage(username, ^messageFlowVar)
+            asyncCheck socket.send(message)
+            messageFlowVar = spawn stdin.readLine()
+        asyncdispatch.poll()
+except:
+    echo "There was an error connecting the server: ", getCurrentExceptionMsg()
