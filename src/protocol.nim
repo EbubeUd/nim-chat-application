@@ -5,7 +5,7 @@ type
         message* : string
 
 
-proc processMessage*(data: string) : Message =
+proc parseMessage*(data: string) : Message =
     let dataJson = parseJson(data)
     result.username = dataJson["username"].getStr("Invalid Username")
     result.message = dataJson["message"].getStr("Invalid Message")
@@ -18,9 +18,9 @@ proc createMessage*(username, message : string) : string =
 
 
 when isMainModule:
-    block TestProcessMessage:
+    block TestParseMessage:
         let msg : string = """{"message":"Hello", "username":"Ebube"}"""
-        let obj : Message = processMessage(msg)
+        let obj : Message = parseMessage(msg)
         let cond = obj.username == "Ebube"
         let cond2 = obj.message == "Hello"
         doAssert(cond)

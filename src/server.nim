@@ -1,4 +1,4 @@
-import asyncdispatch, asyncnet, asyncfile
+import asyncdispatch, asyncnet
 
 type
     Client = ref object
@@ -65,7 +65,7 @@ proc loop(server: Server, port : int = 7687) {.async.} =
 
         #Alert other clients that this client just joined the chat
         let msg : string = "Client #" & $client.id & " just joined the chat"
-        await notifyPublic(server, client, msg)  
+        await notifyPublic(server, client, msg)
 
       
 waitFor loop(server)
