@@ -22,11 +22,11 @@ proc `$`(client: Client) : string =
     $client.id & " (" & $client.netAddr & ")"
 
 
-proc notifyPublic(server: Server, fromClient : Client, message : string) {.async.} =
+proc notifyPublic(server: Server, fromClient : Client, senderName, message : string, messageType: MessageType) {.async.} =
     try:
         for c in server.clients:
             if c.id != fromClient.id and c.connected:
-                var msg = createMessage("SYSTEM: ", message)
+                let msg = createMessage(senderName, message, messageType)
                 await c.socket.send(msg)
     except:
         echo "There was an error trying to send a notification ", getCurrentExceptionMsg()
@@ -42,10 +42,11 @@ proc processMessages(server: Server, client: Client) {.async.} =
 
                 #Alert other clients that this client just left the server
                 let msg : string = "Client #" & $client.id  & " just left the chat"
-                await notifyPublic(server, client, msg)
+                await notifyPublic(server, client, "SYSTEM", msg, MessageType.system)
 
-                return
-            await notifyPublic(server, client, message)
+            else:
+                let parseMsg = parseMessage(message)
+                await notifyPublic(server, client, parseMsg.username, parseMsg.message, MessageType.user)
     except:
         echo "An error occured while trying to Processs the Message: ", getCurrentExceptionMsg()
 
@@ -74,7 +75,7 @@ proc loop(server: Server, port : int = 7687) {.async.} =
 
             #Alert other clients that this client just joined the chat
             let msg : string = "Client #" & $client.id & " just joined the chat"
-            await notifyPublic(server, client, msg)
+            await notifyPublic(server, client, "SYSTEM", msg, MessageType.system)
     except:
         echo "There as an error in the server loop process: ", getCurrentExceptionMsg()
       

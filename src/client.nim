@@ -1,21 +1,19 @@
 import os, asyncdispatch, asyncnet, threadpool
 import protocol
-
 var username = ""
 
 
 proc connect(socket: AsyncSocket, serverAddr: string) {.async.} =
-    try:
-        echo("Connecting to ", serverAddr)
-        await socket.connect(serverAddr, 7687.Port)
-        echo("Connected!")
-        while true:
-            let line = await socket.recvLine()
-            let parsed = parseMessage(line)
-            echo(parsed.username, " said ", parsed.message)
-        echo("Chat application started")
-    except:
-        echo "There was an error trying to connect to the server: ", getCurrentExceptionMsg()
+
+    echo("Connecting to ", serverAddr)
+    await socket.connect(serverAddr, 7687.Port)
+    while true:
+        let line = await socket.recvLine()
+        let parsed : Message = parseMessage(line)
+        echo("[",parsed.username, "] : ", parsed.message)
+
+    echo("Chat application started")
+
 
 
 if paramCount() == 0:
@@ -42,7 +40,7 @@ echo "# type in a message to send to the channel and hit enter to send"
 try:
     while true:
         if messageFlowVar.isReady():
-            let message = createMessage(username, ^messageFlowVar)
+            let message = createMessage(username, ^messageFlowVar, MessageType.user)
             asyncCheck socket.send(message)
             messageFlowVar = spawn stdin.readLine()
         asyncdispatch.poll()
