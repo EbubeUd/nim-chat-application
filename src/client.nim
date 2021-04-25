@@ -1,6 +1,9 @@
 import os, asyncdispatch, asyncnet, threadpool
 import protocol
 
+var username = ""
+
+
 proc connect(socket: AsyncSocket, serverAddr: string) {.async.} =
     echo("Connecting to ", serverAddr)
     await socket.connect(serverAddr, 7687.Port)
@@ -19,10 +22,21 @@ var socket = newAsyncSocket()
 
 asyncCheck connect(socket, serverAddr)
 
+echo "Input a Username: "
 var messageFlowVar = spawn stdin.readLine()
+
 while true:
     if messageFlowVar.isReady():
-        let message = createMessage("Anonymous", ^messageFlowVar)
+        username = ^messageFlowVar
+        break;
+
+echo "username set as ", username
+
+echo "# type in a message to send to the channel and hit enter to send"
+
+while true:
+    if messageFlowVar.isReady():
+        let message = createMessage(username, ^messageFlowVar)
         asyncCheck socket.send(message)
         messageFlowVar = spawn stdin.readLine()
     asyncdispatch.poll()

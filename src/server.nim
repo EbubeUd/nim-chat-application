@@ -1,4 +1,5 @@
 import asyncdispatch, asyncnet
+import protocol
 
 type
     Client = ref object
@@ -24,7 +25,8 @@ proc `$`(client: Client) : string =
 proc notifyPublic(server: Server, fromClient : Client, message : string) {.async.} =
     for c in server.clients:
         if c.id != fromClient.id and c.connected:
-            await c.socket.send(message & "\c\l")
+            var msg = createMessage("SYSTEM: ", message)
+            await c.socket.send(msg)
 
 proc processMessages(server: Server, client: Client) {.async.} =
     while true:
